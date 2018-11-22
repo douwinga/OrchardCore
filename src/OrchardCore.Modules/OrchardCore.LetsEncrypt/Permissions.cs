@@ -6,12 +6,14 @@ namespace OrchardCore.LetsEncrypt
     public class Permissions : IPermissionProvider
     {
         public static readonly Permission ManageLetsEncryptSettings = new Permission("ManageLetsEncryptSettings", "Manage Let's Encrypt Settings");
+        public static readonly Permission ManageLetsEncryptAzureAuthSettings = new Permission("ManageLetsEncryptAzureAuthSettings", "Manage Let's Encrypt Azure Auth Settings");
 
         public IEnumerable<Permission> GetPermissions()
         {
             return new[]
             {
                 ManageLetsEncryptSettings,
+                ManageLetsEncryptAzureAuthSettings
             };
         }
 
@@ -22,7 +24,7 @@ namespace OrchardCore.LetsEncrypt
                 new PermissionStereotype
                 {
                     Name = "Administrator",
-                    Permissions = new[] { ManageLetsEncryptSettings }
+                    Permissions = new[] { ManageLetsEncryptSettings, ManageLetsEncryptAzureAuthSettings }
                 },
             };
         }
