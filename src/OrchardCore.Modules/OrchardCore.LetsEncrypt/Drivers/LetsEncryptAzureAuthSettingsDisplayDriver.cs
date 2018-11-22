@@ -49,8 +49,6 @@ namespace OrchardCore.LetsEncrypt.Drivers
                 return null;
             }
 
-            var test = _armService.GetDnsManagementClient();
-
             return Initialize<LetsEncryptAzureAuthSettings>("LetsEncryptAzureAuthSettings_Edit", model =>
             {
                 model.Tenant = settings.Tenant;
