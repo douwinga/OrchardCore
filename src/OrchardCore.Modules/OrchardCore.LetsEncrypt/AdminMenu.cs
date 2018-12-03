@@ -32,11 +32,17 @@ namespace OrchardCore.LetsEncrypt
 
             builder
                 .Add(T["Configuration"], configuration => configuration
-                    .Add(T["Let's Encrypt Azure Auth"], T["Let's Encrypt Azure Auth"], entry => entry
+                    .Add(T["Let's Encrypt Azure Auth"], T["Let's Encrypt Azure Auth"], azureAuthEntry => azureAuthEntry
                         .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt.Azure.Auth" })
                         .Permission(Permissions.ManageLetsEncryptAzureAuthSettings)
                         .LocalNav()
-                ));
+                    )
+                    .Add(T["Let's Encrypt"], T["Let's Encrypt"], azureEntry => azureEntry
+                        .Action("AzureSettings", "Admin", new { area = "OrchardCore.LetsEncrypt", groupId = "OrchardCore.LetsEncrypt.Azure" })
+                        .Permission(Permissions.ManageLetsEncryptSettings)
+                        .LocalNav()
+                    )
+                );
 
             return Task.CompletedTask;
         }

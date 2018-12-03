@@ -1,20 +1,26 @@
+using System;
 using Microsoft.Azure.Management.WebSites;
 using Microsoft.Azure.Management.WebSites.Models;
+using OrchardCore.LetsEncrypt.Settings;
 
-namespace OrchardCore.LetsEncrypt.Extrensions
+namespace OrchardCore.LetsEncrypt.Extensions
 {
     public static class SiteSlotExtensions
     {
-        public static Site GetSiteOrSlot(this IWebAppsOperations sites, string resourceGroupName, string webAppName,
-            string siteSlotName)
+        public static Site GetSiteOrSlot(this IWebAppsOperations sites, LetsEncryptAzureAuthSettings azureAuthSettings)
         {
-            if (string.IsNullOrEmpty(siteSlotName))
+            if (azureAuthSettings == null)
             {
-                return sites.Get(resourceGroupName, webAppName);
+                throw new ArgumentNullException(nameof(azureAuthSettings));
+            }
+
+            if (string.IsNullOrEmpty(azureAuthSettings.SiteSlotName))
+            {
+                return sites.Get(azureAuthSettings.ResourceGroupName, azureAuthSettings.WebAppName);
             }
             else
             {
-                return sites.GetSlot(resourceGroupName, webAppName, siteSlotName);
+                return sites.GetSlot(azureAuthSettings.ResourceGroupName, azureAuthSettings.WebAppName, azureAuthSettings.SiteSlotName);
             }
         }
     }
