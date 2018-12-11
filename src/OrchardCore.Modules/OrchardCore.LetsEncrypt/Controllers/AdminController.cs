@@ -11,11 +11,16 @@ namespace OrchardCore.LetsEncrypt.Controllers
     public class AdminController : Controller
     {
         private readonly IAzureServiceManager _azureServiceManager;
+        private readonly ILetsEncryptService _letsEncryptService;
         private readonly LetsEncryptAzureAuthSettings _azureAuthSettings;
 
-        public AdminController(IAzureServiceManager azureServiceManager, IOptions<LetsEncryptAzureAuthSettings> azureAuthSettings)
+        public AdminController(
+            IAzureServiceManager azureServiceManager,
+            ILetsEncryptService letsEncryptService,
+            IOptions<LetsEncryptAzureAuthSettings> azureAuthSettings)
         {
             _azureServiceManager = azureServiceManager;
+            _letsEncryptService = letsEncryptService;
             _azureAuthSettings = azureAuthSettings.Value;
         }
 
@@ -65,12 +70,11 @@ namespace OrchardCore.LetsEncrypt.Controllers
             return View(model);
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> Install()
-        //{
-
-
-        //    return View(model);
-        //}
+        [HttpPost]
+        public async Task<IActionResult> Install()
+        {
+            await _letsEncryptService.RequestDnsChallengeCertificate("test@example.com", "example.com", true);
+            return View();
+        }
     }
 }

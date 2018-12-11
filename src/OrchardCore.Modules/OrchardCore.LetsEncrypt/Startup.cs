@@ -22,6 +22,7 @@ namespace OrchardCore.LetsEncrypt
 
             services.AddTransient<IConfigureOptions<LetsEncryptAzureAuthSettings>, LetsEncryptAzureAuthSettingsConfiguration>();
             services.AddScoped<IAzureServiceManager, AzureServiceManager>();
+            services.AddScoped<ILetsEncryptService, LetsEncryptService>();
         }
     }
 }

@@ -12,70 +12,71 @@
     </ul>
 </nav>
 
-<form asp-action="Index">
-    <h3>@T["Hostnames"]</h3>
-    <ul class="list-group">
-        @if (Model.HostNames.Any())
-        {
-            @foreach (var hostName in Model.HostNames)
-            {
-                <li class="list-group-item">
-                    <div class="properties">
-                        <div class="related">
-                            <a asp-action="Delete" asp-route-id="@hostName" class="btn btn-dark btn-sm" itemprop="UnsafeUrl">@T["Delete"]</a>
-                        </div>
-                        <span>@hostName</span>
-                    </div>
-                </li>
-            }
-        }
-        else
-        {
-            <div class="alert alert-info" role="alert">
-                @T["There are no registered hostnames."]
-            </div>
-        }
-    </ul>
 
-    <h3 class="mt-3">@T["Hostname SSL Bindings"]</h3>
-    <ul class="list-group">
-        @if (Model.HostNameSslStates.Any())
+<h3>@T["Hostnames"]</h3>
+<ul class="list-group">
+    @if (Model.HostNames.Any())
+    {
+        @foreach (var hostName in Model.HostNames)
         {
-            @foreach (var hostNameSslState in Model.HostNameSslStates)
-            {
-                <li class="list-group-item">
-                    <div class="properties">
-                        <div>@hostNameSslState.Value.Name</div>
-                        @if (!string.IsNullOrEmpty(hostNameSslState.Value.Thumbprint))
+            <li class="list-group-item">
+                <div class="properties">
+                    <div class="related">
+                        <a asp-action="Delete" asp-route-id="@hostName" class="btn btn-dark btn-sm" itemprop="UnsafeUrl">@T["Delete"]</a>
+                    </div>
+                    <span>@hostName</span>
+                </div>
+            </li>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            @T["There are no registered hostnames."]
+        </div>
+    }
+</ul>
+
+<h3 class="mt-3">@T["Hostname SSL Bindings"]</h3>
+<ul class="list-group">
+    @if (Model.HostNameSslStates.Any())
+    {
+        @foreach (var hostNameSslState in Model.HostNameSslStates)
+        {
+            <li class="list-group-item">
+                <div class="properties">
+                    <div>@hostNameSslState.Value.Name</div>
+                    @if (!string.IsNullOrEmpty(hostNameSslState.Value.Thumbprint))
+                    {
+                        <code class="hint">Thumbprint: @hostNameSslState.Value.Thumbprint</code>
+                    }
+                    <div>
+                        @switch (hostNameSslState.Value.SslState)
                         {
-                            <code class="hint">Thumbprint: @hostNameSslState.Value.Thumbprint</code>
+                            case SslState.Disabled:
+                                <span class="badge badge-dark">@T["Disabled"]</span>
+                                break;
+                            case SslState.SniEnabled:
+                                <span class="badge badge-info">@T["SNI Enabled"]</span>
+                                break;
+                            case SslState.IpBasedEnabled:
+                                <span class="badge badge-success">@T["IP Based Enabled"]</span>
+                                break;
                         }
-                        <div>
-                            @switch (hostNameSslState.Value.SslState)
-                            {
-                                case SslState.Disabled:
-                                    <span class="badge badge-dark">@T["Disabled"]</span>
-                                    break;
-                                case SslState.SniEnabled:
-                                    <span class="badge badge-info">@T["SNI Enabled"]</span>
-                                    break;
-                                case SslState.IpBasedEnabled:
-                                    <span class="badge badge-success">@T["IP Based Enabled"]</span>
-                                    break;
-                            }
-                        </div>
                     </div>
-                </li>
-            }
+                </div>
+            </li>
         }
-        else
-        {
-            <div class="alert alert-info" role="alert">
-                @T["There are no hostname SSL bindings."]
-            </div>
-        }
-    </ul>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            @T["There are no hostname SSL bindings."]
+        </div>
+    }
+</ul>
 
+<form asp-action="Install">
     <h3 class="mt-3">@T["Request and Install Certificate"]</h3>
     <div class="row">
         <div class="form-group col-md-6">
