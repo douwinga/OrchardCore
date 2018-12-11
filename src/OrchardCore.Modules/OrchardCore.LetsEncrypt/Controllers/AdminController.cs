@@ -1,9 +1,7 @@
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Management.WebSites;
+using Microsoft.Azure.Management.AppService.Fluent;
 using Microsoft.Extensions.Options;
-using OrchardCore.LetsEncrypt.Extensions;
 using OrchardCore.LetsEncrypt.Services;
 using OrchardCore.LetsEncrypt.Settings;
 using OrchardCore.LetsEncrypt.ViewModels;
@@ -12,26 +10,33 @@ namespace OrchardCore.LetsEncrypt.Controllers
 {
     public class AdminController : Controller
     {
-        private readonly IArmService _armService;
+        private readonly IAzureServiceManager _azureServiceManager;
         private readonly LetsEncryptAzureAuthSettings _azureAuthSettings;
 
-        public AdminController(IArmService armService, IOptions<LetsEncryptAzureAuthSettings> azureAuthSettings)
+        public AdminController(IAzureServiceManager azureServiceManager, IOptions<LetsEncryptAzureAuthSettings> azureAuthSettings)
         {
-            _armService = armService;
+            _azureServiceManager = azureServiceManager;
             _azureAuthSettings = azureAuthSettings.Value;
         }
 
         public async Task<IActionResult> AzureSettings()
         {
-            var client = await _armService.GetWebSiteManagementClient();
+            var appServiceManager = _azureServiceManager.GetAppServiceManager();
 
-            var site = client.WebApps.GetSiteOrSlot(_azureAuthSettings);
+            var site = appServiceManager.WebApps.GetByResourceGroup(_azureAuthSettings.ResourceGroupName, _azureAuthSettings.WebAppName);
+            IWebAppBase siteOrSlot = site;
+
+            if (!string.IsNullOrEmpty(_azureAuthSettings.SiteSlotName))
+            {
+                var slot = site.DeploymentSlots.GetByName(_azureAuthSettings.SiteSlotName);
+                siteOrSlot = slot;
+            }
 
             var model = new AzureSettingsViewModel
             {
-                HostNames = site.HostNames,
-                HostNameSslStates = site.HostNameSslStates,
-                Certificates = client.Certificates.ListByResourceGroup(_azureAuthSettings.ServicePlanResourceGroupName).ToList()
+                HostNames = siteOrSlot.HostNames,
+                HostNameSslStates = siteOrSlot.HostNameSslStates,
+                Certificates = await appServiceManager.AppServiceCertificates.ListByResourceGroupAsync(_azureAuthSettings.ServicePlanResourceGroupName ?? _azureAuthSettings.ResourceGroupName)
             };
 
             //var shells = await GetShellsAsync();
@@ -59,5 +64,13 @@ namespace OrchardCore.LetsEncrypt.Controllers
 
             return View(model);
         }
+
+        //[HttpPost]
+        //public async Task<IActionResult> Install()
+        //{
+
+
+        //    return View(model);
+        //}
     }
 }

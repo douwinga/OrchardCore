@@ -1,5 +1,5 @@
+@using Microsoft.Azure.Management.AppService.Fluent.Models
 @model OrchardCore.LetsEncrypt.ViewModels.AzureSettingsViewModel
-@using Microsoft.Azure.Management.WebSites.Models
 
 <h1>@RenderTitleSegments(T["Let's Encrypt - Azure Settings"])</h1>
 
@@ -45,13 +45,13 @@
             {
                 <li class="list-group-item">
                     <div class="properties">
-                        <div>@hostNameSslState.Name</div>
-                        @if (!string.IsNullOrEmpty(hostNameSslState.Thumbprint))
+                        <div>@hostNameSslState.Value.Name</div>
+                        @if (!string.IsNullOrEmpty(hostNameSslState.Value.Thumbprint))
                         {
-                            <code class="hint">Thumbprint: @hostNameSslState.Thumbprint</code>
+                            <code class="hint">Thumbprint: @hostNameSslState.Value.Thumbprint</code>
                         }
                         <div>
-                            @switch (hostNameSslState.SslState)
+                            @switch (hostNameSslState.Value.SslState)
                             {
                                 case SslState.Disabled:
                                     <span class="badge badge-dark">@T["Disabled"]</span>

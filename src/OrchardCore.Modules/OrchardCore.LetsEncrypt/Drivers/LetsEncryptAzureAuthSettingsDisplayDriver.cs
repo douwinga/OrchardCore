@@ -7,7 +7,6 @@ using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.DisplayManagement.Views;
 using OrchardCore.Environment.Shell;
 using OrchardCore.LetsEncrypt.Configuration;
-using OrchardCore.LetsEncrypt.Services;
 using OrchardCore.LetsEncrypt.Settings;
 using OrchardCore.Settings;
 
@@ -22,15 +21,13 @@ namespace OrchardCore.LetsEncrypt.Drivers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IShellHost _shellHost;
         private readonly ShellSettings _shellSettings;
-        private readonly IArmService _armService;
 
         public LetsEncryptAzureAuthSettingsDisplayDriver(
             IAuthorizationService authorizationService,
             IDataProtectionProvider dataProtectionProvider,
             IHttpContextAccessor httpContextAccessor,
             IShellHost shellHost,
-            ShellSettings shellSettings,
-            IArmService armService
+            ShellSettings shellSettings
             )
         {
             _authorizationService = authorizationService;
@@ -38,7 +35,6 @@ namespace OrchardCore.LetsEncrypt.Drivers
             _httpContextAccessor = httpContextAccessor;
             _shellHost = shellHost;
             _shellSettings = shellSettings;
-            _armService = armService;
         }
 
         public override async Task<IDisplayResult> EditAsync(LetsEncryptAzureAuthSettings settings, BuildEditorContext context)

@@ -1,12 +1,14 @@
 using System.Collections.Generic;
-using Microsoft.Azure.Management.WebSites.Models;
+using Microsoft.Azure.Management.AppService.Fluent;
+using Microsoft.Azure.Management.AppService.Fluent.Models;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 
 namespace OrchardCore.LetsEncrypt.ViewModels
 {
     public class AzureSettingsViewModel
     {
-        public IList<string> HostNames { get; set; }
-        public IList<HostNameSslState> HostNameSslStates { get; set; }
-        public IList<Certificate> Certificates { get; internal set; }
+        public ISet<string> HostNames { get; set; }
+        public IReadOnlyDictionary<string, HostNameSslState> HostNameSslStates { get; set; }
+        public IPagedCollection<IAppServiceCertificate> Certificates { get; internal set; }
     }
 }
