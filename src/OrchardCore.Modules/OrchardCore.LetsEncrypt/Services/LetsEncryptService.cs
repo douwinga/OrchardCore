@@ -1,8 +1,10 @@
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Certes;
 using Certes.Acme;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OrchardCore.Environment.Shell;
 
@@ -12,19 +14,55 @@ namespace OrchardCore.LetsEncrypt.Services
     {
         private readonly IOptions<ShellOptions> _shellOptions;
         private readonly ShellSettings _shellSettings;
+        private readonly ILogger _logger;
 
         public LetsEncryptService(
             IOptions<ShellOptions> shellOptions,
-            ShellSettings shellSettings
+            ShellSettings shellSettings,
+            ILogger<LetsEncryptService> logger
             )
         {
             _shellOptions = shellOptions;
             _shellSettings = shellSettings;
+            _logger = logger;
         }
 
         public async Task RequestHttpChallengeCertificate(string registrationEmail, string[] hostnames, bool useStaging)
         {
             var acmeContext = await GetOrCreateAcmeContext(registrationEmail, useStaging);
+
+            var order = await acmeContext.NewOrder(hostnames);
+
+            var authorizationContext = (await order.Authorizations()).First();
+            var httpChallenge = await authorizationContext.Http();
+            var keyAuthorizationString = httpChallenge.KeyAuthz;
+
+            var keyAuthorizationFilename = PathExtensions.Combine(
+                _shellOptions.Value.ShellsApplicationDataPath,
+                _shellOptions.Value.ShellsContainerName,
+                _shellSettings.Name,
+                "Lets-Encrypt",
+                "Challenge-Keys",
+                httpChallenge.Token);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(keyAuthorizationFilename));
+            File.WriteAllText(keyAuthorizationFilename, keyAuthorizationString);
+
+            var challengeResponse = await httpChallenge.Validate();
+
+            while (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Pending || challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Processing)
+            {
+                _logger.LogInformation($"HTTP challenge response status {challengeResponse.Status} more info at {challengeResponse.Url} retrying in 5 sec");
+                await Task.Delay(5000);
+                challengeResponse = await httpChallenge.Resource();
+            }
+
+            if (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Invalid)
+            {
+                throw new System.Exception($"Let's Encrypt challenge failed. {challengeResponse.Error?.Detail}");
+            }
+
+            var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
         }
 
         private async Task<AcmeContext> GetOrCreateAcmeContext(string registrationEmail, bool useStaging)
@@ -38,6 +76,7 @@ namespace OrchardCore.LetsEncrypt.Services
                 _shellOptions.Value.ShellsContainerName,
                 _shellSettings.Name,
                 "Lets-Encrypt",
+                "Account-Keys",
                 $"{registrationEmail}-{letsEncryptUri.Host}.pem");
 
             if (!File.Exists(pemKeyFilename))
