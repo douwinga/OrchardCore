@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.Azure.Management.AppService.Fluent;
 using Microsoft.Extensions.Options;
+using OrchardCore.DisplayManagement.Notify;
 using OrchardCore.LetsEncrypt.Services;
 using OrchardCore.LetsEncrypt.Settings;
 using OrchardCore.LetsEncrypt.ViewModels;
@@ -13,37 +15,28 @@ namespace OrchardCore.LetsEncrypt.Controllers
         private readonly IAzureServiceManager _azureServiceManager;
         private readonly ILetsEncryptService _letsEncryptService;
         private readonly LetsEncryptAzureAuthSettings _azureAuthSettings;
+        private readonly INotifier _notifier;
 
         public AdminController(
             IAzureServiceManager azureServiceManager,
             ILetsEncryptService letsEncryptService,
-            IOptions<LetsEncryptAzureAuthSettings> azureAuthSettings)
+            IOptions<LetsEncryptAzureAuthSettings> azureAuthSettings,
+            INotifier notifier,
+            IHtmlLocalizer<AdminController> localizer
+            )
         {
             _azureServiceManager = azureServiceManager;
             _letsEncryptService = letsEncryptService;
             _azureAuthSettings = azureAuthSettings.Value;
+            _notifier = notifier;
+
+            T = localizer;
         }
 
-        public async Task<IActionResult> AzureSettings()
+        public IHtmlLocalizer T { get; }
+
+        public async Task<IActionResult> AzureInstallCertificate()
         {
-            var appServiceManager = _azureServiceManager.GetAppServiceManager();
-
-            var site = appServiceManager.WebApps.GetByResourceGroup(_azureAuthSettings.ResourceGroupName, _azureAuthSettings.WebAppName);
-            IWebAppBase siteOrSlot = site;
-
-            if (!string.IsNullOrEmpty(_azureAuthSettings.SiteSlotName))
-            {
-                var slot = site.DeploymentSlots.GetByName(_azureAuthSettings.SiteSlotName);
-                siteOrSlot = slot;
-            }
-
-            var model = new AzureSettingsViewModel
-            {
-                HostNames = siteOrSlot.HostNames,
-                HostNameSslStates = siteOrSlot.HostNameSslStates,
-                Certificates = await appServiceManager.AppServiceCertificates.ListByResourceGroupAsync(_azureAuthSettings.ServicePlanResourceGroupName ?? _azureAuthSettings.ResourceGroupName)
-            };
-
             //var shells = await GetShellsAsync();
             //var dataProtector = _dataProtectorProvider.CreateProtector("Tokens").ToTimeLimitedDataProtector();
 
@@ -67,14 +60,48 @@ namespace OrchardCore.LetsEncrypt.Controllers
             //    }).ToList()
             //};
 
-            return View(model);
+            return View(await BuildAzureInstallCertificateViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Install()
+        public async Task<IActionResult> AzureInstallCertificate(AzureInstallCertificateViewModel model)
         {
-            await _letsEncryptService.RequestDnsChallengeCertificate("test@example.com", "example.com", true);
-            return View();
+            if (!ModelState.IsValid)
+            {
+                await BuildAzureInstallCertificateViewModel(model);
+                return View("AzureInstallCertificate", model);
+            }
+
+            await _letsEncryptService.RequestHttpChallengeCertificate(model.RegistrationEmail, model.Hostnames, model.UseStaging);
+
+            _notifier.Success(T["Successfully installed Let's Encrypt certificate!"]);
+
+            return RedirectToAction("AzureInstallCertificate");
+        }
+
+        private async Task<AzureInstallCertificateViewModel> BuildAzureInstallCertificateViewModel(AzureInstallCertificateViewModel model = null)
+        {
+            if (model == null)
+            {
+                model = new AzureInstallCertificateViewModel();
+            }
+            var appServiceManager = _azureServiceManager.GetAppServiceManager();
+
+            var site = appServiceManager.WebApps.GetByResourceGroup(_azureAuthSettings.ResourceGroupName, _azureAuthSettings.WebAppName);
+            var siteOrSlot = (IWebAppBase)site;
+
+            if (!string.IsNullOrEmpty(_azureAuthSettings.SiteSlotName))
+            {
+                var slot = site.DeploymentSlots.GetByName(_azureAuthSettings.SiteSlotName);
+                siteOrSlot = slot;
+            }
+
+            model.AvailableHostNames = siteOrSlot.HostNames;
+            model.HostNameSslStates = siteOrSlot.HostNameSslStates;
+            model.InstalledCertificates = await appServiceManager.AppServiceCertificates
+                .ListByResourceGroupAsync(_azureAuthSettings.ServicePlanResourceGroupName ?? _azureAuthSettings.ResourceGroupName);
+
+            return model;
         }
     }
 }

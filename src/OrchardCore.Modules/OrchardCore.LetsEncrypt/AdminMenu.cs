@@ -38,7 +38,7 @@ namespace OrchardCore.LetsEncrypt
                         .LocalNav()
                     )
                     .Add(T["Let's Encrypt"], T["Let's Encrypt"], azureEntry => azureEntry
-                        .Action("AzureSettings", "Admin", new { area = "OrchardCore.LetsEncrypt", groupId = "OrchardCore.LetsEncrypt.Azure" })
+                        .Action("AzureInstallCertificate", "Admin", new { area = "OrchardCore.LetsEncrypt", groupId = "OrchardCore.LetsEncrypt.Azure" })
                         .Permission(Permissions.ManageLetsEncryptSettings)
                         .LocalNav()
                     )

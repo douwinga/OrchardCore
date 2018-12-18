@@ -4,6 +4,6 @@ namespace OrchardCore.LetsEncrypt.Services
 {
     public interface ILetsEncryptService
     {
-        Task RequestDnsChallengeCertificate(string registrationEmail, string hostName, bool useStaging);
+        Task RequestHttpChallengeCertificate(string registrationEmail, string[] hostnames, bool useStaging);
     }
 }
