@@ -1,10 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace OrchardCore.LetsEncrypt.Settings
 {
-    public class LetsEncryptAcmeConfigSettings
+    public class LetsEncryptConfigSettings
     {
-        [Required]
         public string PfxPassword { get; set; }
         public string Country { get; set; }
         public string StateOrProvince { get; set; }

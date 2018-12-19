@@ -21,9 +21,11 @@ namespace OrchardCore.LetsEncrypt
         {
             services.AddScoped<IPermissionProvider, Permissions>();
             services.AddScoped<IDisplayDriver<ISite>, LetsEncryptAzureAuthSettingsDisplayDriver>();
+            services.AddScoped<IDisplayDriver<ISite>, LetsEncryptConfigSettingsDisplayDriver>();
             services.AddScoped<INavigationProvider, AdminMenu>();
 
             services.AddTransient<IConfigureOptions<LetsEncryptAzureAuthSettings>, LetsEncryptAzureAuthSettingsConfiguration>();
+            services.AddTransient<IConfigureOptions<LetsEncryptConfigSettings>, LetsEncryptConfigSettingsConfiguration>();
             services.AddScoped<IAzureServiceManager, AzureServiceManager>();
             services.AddScoped<ILetsEncryptService, LetsEncryptService>();
         }

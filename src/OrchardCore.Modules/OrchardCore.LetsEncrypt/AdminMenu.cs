@@ -38,7 +38,7 @@ namespace OrchardCore.LetsEncrypt
                 }
 
                 category.Add(T["Configuration"], "2", client => client
-                    .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt.Config" })
+                    .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt" })
                     .Permission(Permissions.ManageLetsEncryptSettings)
                     .LocalNav()
                 );

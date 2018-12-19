@@ -1,0 +1,35 @@
+@using OrchardCore.LetsEncrypt.Settings
+@model LetsEncryptConfigSettings;
+
+<p class="alert alert-warning">@T["The current tenant will be reloaded when the settings are saved."]</p>
+
+<fieldset class="form-group" asp-validation-class-for="Country">
+    <label>@T["Country"] <span asp-validation-for="Country"></span></label>
+    <input asp-for="Country" class="form-control" />
+</fieldset>
+
+<fieldset class="form-group" asp-validation-class-for="StateOrProvince">
+    <label>@T["State or Province"] <span asp-validation-for="StateOrProvince"></span></label>
+    <input asp-for="StateOrProvince" class="form-control" />
+</fieldset>
+
+<fieldset class="form-group" asp-validation-class-for="Locality">
+    <label>@T["Locality"] <span asp-validation-for="Locality"></span></label>
+    <input asp-for="Locality" class="form-control" />
+</fieldset>
+
+<fieldset class="form-group" asp-validation-class-for="Organization">
+    <label>@T["Organization"] <span asp-validation-for="Organization"></span></label>
+    <input asp-for="Organization" class="form-control" />
+</fieldset>
+
+<fieldset class="form-group" asp-validation-class-for="OrganizationUnit">
+    <label>@T["Organization Unit"] <span asp-validation-for="OrganizationUnit"></span></label>
+    <input asp-for="OrganizationUnit" class="form-control" />
+</fieldset>
+
+<fieldset class="form-group" asp-validation-class-for="PfxPassword">
+    <label>@T["PFX Password"] <span asp-validation-for="PfxPassword"></span></label>
+    <input asp-for="PfxPassword" class="form-control" type="password" autocomplete="off" />
+    <span class="hint">@T["The PFX password to use for the certificate."]</span>
+</fieldset>
