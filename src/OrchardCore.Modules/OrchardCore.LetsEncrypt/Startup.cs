@@ -1,3 +1,6 @@
+using System;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OrchardCore.DisplayManagement.Handlers;
@@ -24,5 +27,16 @@ namespace OrchardCore.LetsEncrypt
             services.AddScoped<IAzureServiceManager, AzureServiceManager>();
             services.AddScoped<ILetsEncryptService, LetsEncryptService>();
         }
+
+        public override void Configure(IApplicationBuilder builder, IRouteBuilder routes, IServiceProvider serviceProvider)
+        {
+            routes.MapAreaRoute(
+                name: "AcmeChallenge",
+                areaName: "OrchardCore.LetsEncrypt",
+                template: ".well-known/acme-challenge/{token}",
+                defaults: new { controller = "Acme", action = "Challenge" }
+            );
+        }
     }
 }
+

@@ -37,13 +37,7 @@ namespace OrchardCore.LetsEncrypt.Services
             var httpChallenge = await authorizationContext.Http();
             var keyAuthorizationString = httpChallenge.KeyAuthz;
 
-            var keyAuthorizationFilename = PathExtensions.Combine(
-                _shellOptions.Value.ShellsApplicationDataPath,
-                _shellOptions.Value.ShellsContainerName,
-                _shellSettings.Name,
-                "Lets-Encrypt",
-                "Challenge-Keys",
-                httpChallenge.Token);
+            var keyAuthorizationFilename = GetChallengeKeyFilename(httpChallenge.Token);
 
             Directory.CreateDirectory(Path.GetDirectoryName(keyAuthorizationFilename));
             File.WriteAllText(keyAuthorizationFilename, keyAuthorizationString);
@@ -63,6 +57,18 @@ namespace OrchardCore.LetsEncrypt.Services
             }
 
             var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
+        }
+
+        public string GetChallengeKeyFilename(string token)
+        {
+            return PathExtensions.Combine(
+                _shellOptions.Value.ShellsApplicationDataPath,
+                _shellOptions.Value.ShellsContainerName,
+                _shellSettings.Name,
+                "Lets-Encrypt",
+                "Challenge-Keys",
+                token
+            );
         }
 
         private async Task<AcmeContext> GetOrCreateAcmeContext(string registrationEmail, bool useStaging)
