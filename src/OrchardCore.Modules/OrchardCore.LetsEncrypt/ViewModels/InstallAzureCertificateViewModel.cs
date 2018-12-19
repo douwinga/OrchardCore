@@ -6,7 +6,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 
 namespace OrchardCore.LetsEncrypt.ViewModels
 {
-    public class AzureInstallCertificateViewModel
+    public class InstallAzureCertificateViewModel
     {
         [MinLength(1)]
         [Required]

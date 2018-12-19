@@ -24,25 +24,31 @@ namespace OrchardCore.LetsEncrypt
                 return Task.CompletedTask;
             }
 
-            // Don't add the menu item on non-default tenants
-            if (_shellSettings.Name != ShellHelper.DefaultShellName)
+            builder.Add(T["Let's Encrypt"], "16", category =>
             {
-                return Task.CompletedTask;
-            }
+                category.AddClass("lock").Id("lock");
 
-            builder
-                .Add(T["Configuration"], configuration => configuration
-                    .Add(T["Let's Encrypt Azure Auth"], T["Let's Encrypt Azure Auth"], azureAuthEntry => azureAuthEntry
+                if (_shellSettings.Name == ShellHelper.DefaultShellName)
+                {
+                    category.Add(T["Azure Authentication"], "1", client => client
                         .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt.Azure.Auth" })
                         .Permission(Permissions.ManageLetsEncryptAzureAuthSettings)
                         .LocalNav()
-                    )
-                    .Add(T["Let's Encrypt"], T["Let's Encrypt"], azureEntry => azureEntry
-                        .Action("AzureInstallCertificate", "Admin", new { area = "OrchardCore.LetsEncrypt", groupId = "OrchardCore.LetsEncrypt.Azure" })
-                        .Permission(Permissions.ManageLetsEncryptSettings)
-                        .LocalNav()
-                    )
+                    );
+                }
+
+                category.Add(T["Configuration"], "2", client => client
+                    .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt.Config" })
+                    .Permission(Permissions.ManageLetsEncryptSettings)
+                    .LocalNav()
                 );
+
+                category.Add(T["Install Azure Cert"], "3", azureEntry => azureEntry
+                    .Action("InstallAzureCertificate", "Admin", new { area = "OrchardCore.LetsEncrypt", groupId = "OrchardCore.LetsEncrypt.AzureInstall" })
+                    .Permission(Permissions.ManageLetsEncryptSettings)
+                    .LocalNav()
+                );
+            });
 
             return Task.CompletedTask;
         }

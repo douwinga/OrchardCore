@@ -35,7 +35,7 @@ namespace OrchardCore.LetsEncrypt.Controllers
 
         public IHtmlLocalizer T { get; }
 
-        public async Task<IActionResult> AzureInstallCertificate()
+        public async Task<IActionResult> InstallAzureCertificate()
         {
             //var shells = await GetShellsAsync();
             //var dataProtector = _dataProtectorProvider.CreateProtector("Tokens").ToTimeLimitedDataProtector();
@@ -60,15 +60,15 @@ namespace OrchardCore.LetsEncrypt.Controllers
             //    }).ToList()
             //};
 
-            return View(await BuildAzureInstallCertificateViewModel());
+            return View(await BuildInstallAzureCertificateViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> AzureInstallCertificate(AzureInstallCertificateViewModel model)
+        public async Task<IActionResult> InstallAzureCertificate(InstallAzureCertificateViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                await BuildAzureInstallCertificateViewModel(model);
+                await BuildInstallAzureCertificateViewModel(model);
                 return View("AzureInstallCertificate", model);
             }
 
@@ -79,11 +79,11 @@ namespace OrchardCore.LetsEncrypt.Controllers
             return RedirectToAction("AzureInstallCertificate");
         }
 
-        private async Task<AzureInstallCertificateViewModel> BuildAzureInstallCertificateViewModel(AzureInstallCertificateViewModel model = null)
+        private async Task<InstallAzureCertificateViewModel> BuildInstallAzureCertificateViewModel(InstallAzureCertificateViewModel model = null)
         {
             if (model == null)
             {
-                model = new AzureInstallCertificateViewModel();
+                model = new InstallAzureCertificateViewModel();
             }
             var appServiceManager = _azureServiceManager.GetAppServiceManager();
 
