@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -7,6 +8,7 @@ using Certes.Acme;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OrchardCore.Environment.Shell;
+using OrchardCore.LetsEncrypt.Settings;
 
 namespace OrchardCore.LetsEncrypt.Services
 {
@@ -14,16 +16,19 @@ namespace OrchardCore.LetsEncrypt.Services
     {
         private readonly IOptions<ShellOptions> _shellOptions;
         private readonly ShellSettings _shellSettings;
+        private readonly LetsEncryptCertConfigSettings _certConfigSettings;
         private readonly ILogger _logger;
 
         public LetsEncryptService(
             IOptions<ShellOptions> shellOptions,
             ShellSettings shellSettings,
+            IOptions<LetsEncryptCertConfigSettings> certConfigSettings,
             ILogger<LetsEncryptService> logger
             )
         {
             _shellOptions = shellOptions;
             _shellSettings = shellSettings;
+            _certConfigSettings = certConfigSettings.Value;
             _logger = logger;
         }
 
@@ -53,12 +58,31 @@ namespace OrchardCore.LetsEncrypt.Services
 
             if (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Invalid)
             {
-                throw new System.Exception($"Let's Encrypt challenge failed. {challengeResponse.Error?.Detail}");
+                throw new Exception($"Let's Encrypt challenge failed. {challengeResponse.Error?.Detail}");
             }
 
             var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
+
+            // TODO: Split out into a separate function
+            var cert = await order.Generate(new CsrInfo
+            {
+                CountryName = _certConfigSettings.Country,
+                State = _certConfigSettings.StateOrProvince,
+                Locality = _certConfigSettings.Locality,
+                Organization = _certConfigSettings.Organization,
+                OrganizationUnit = _certConfigSettings.OrganizationUnit,
+                CommonName = hostnames[0]
+            }, privateKey);
+
+            var certPem = cert.ToPem();
+
+            var pfxBuilder = cert.ToPfx(privateKey);
+            var pfx = pfxBuilder.Build(hostnames[0], _certConfigSettings.PfxPassword);
+
+            File.WriteAllBytes(GetCertFilename(hostnames[0]), pfx);
         }
 
+        // TODO: Move to a provider or something
         public string GetChallengeKeyFilename(string token)
         {
             return PathExtensions.Combine(
@@ -68,6 +92,19 @@ namespace OrchardCore.LetsEncrypt.Services
                 "Lets-Encrypt",
                 "Challenge-Keys",
                 token
+            );
+        }
+
+        // TODO: Move to a provider or something
+        public string GetCertFilename(string hostname)
+        {
+            return PathExtensions.Combine(
+                _shellOptions.Value.ShellsApplicationDataPath,
+                _shellOptions.Value.ShellsContainerName,
+                _shellSettings.Name,
+                "Lets-Encrypt",
+                "Certificates",
+                $"{hostname} {DateTime.Now}"
             );
         }
 
