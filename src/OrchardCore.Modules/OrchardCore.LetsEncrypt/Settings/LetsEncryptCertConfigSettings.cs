@@ -1,6 +1,6 @@
 namespace OrchardCore.LetsEncrypt.Settings
 {
-    public class LetsEncryptConfigSettings
+    public class LetsEncryptCertConfigSettings
     {
         public string PfxPassword { get; set; }
         public string Country { get; set; }

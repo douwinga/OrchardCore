@@ -12,9 +12,9 @@ using OrchardCore.Settings;
 
 namespace OrchardCore.LetsEncrypt.Drivers
 {
-    public class LetsEncryptConfigSettingsDisplayDriver : SectionDisplayDriver<ISite, LetsEncryptConfigSettings>
+    public class LetsEncryptCertConfigSettingsDisplayDriver : SectionDisplayDriver<ISite, LetsEncryptCertConfigSettings>
     {
-        private const string SettingsGroupId = "OrchardCore.LetsEncrypt";
+        private const string SettingsGroupId = "OrchardCore.LetsEncrypt.Cert";
 
         private readonly IAuthorizationService _authorizationService;
         private readonly IDataProtectionProvider _dataProtectionProvider;
@@ -22,7 +22,7 @@ namespace OrchardCore.LetsEncrypt.Drivers
         private readonly IShellHost _shellHost;
         private readonly ShellSettings _shellSettings;
 
-        public LetsEncryptConfigSettingsDisplayDriver(
+        public LetsEncryptCertConfigSettingsDisplayDriver(
             IAuthorizationService authorizationService,
             IDataProtectionProvider dataProtectionProvider,
             IHttpContextAccessor httpContextAccessor,
@@ -37,7 +37,7 @@ namespace OrchardCore.LetsEncrypt.Drivers
             _shellSettings = shellSettings;
         }
 
-        public override async Task<IDisplayResult> EditAsync(LetsEncryptConfigSettings settings, BuildEditorContext context)
+        public override async Task<IDisplayResult> EditAsync(LetsEncryptCertConfigSettings settings, BuildEditorContext context)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !await _authorizationService.AuthorizeAsync(user, Permissions.ManageLetsEncryptSettings))
@@ -45,7 +45,7 @@ namespace OrchardCore.LetsEncrypt.Drivers
                 return null;
             }
 
-            return Initialize<LetsEncryptConfigSettings>("LetsEncryptConfigSettings_Edit", model =>
+            return Initialize<LetsEncryptCertConfigSettings>("LetsEncryptCertConfigSettings_Edit", model =>
             {
                 model.PfxPassword = settings.PfxPassword;
                 model.Country = settings.Country;
@@ -56,7 +56,7 @@ namespace OrchardCore.LetsEncrypt.Drivers
             }).Location("Content:2").OnGroup(SettingsGroupId);
         }
 
-        public override async Task<IDisplayResult> UpdateAsync(LetsEncryptConfigSettings settings, BuildEditorContext context)
+        public override async Task<IDisplayResult> UpdateAsync(LetsEncryptCertConfigSettings settings, BuildEditorContext context)
         {
             var user = _httpContextAccessor.HttpContext?.User;
             if (user == null || !await _authorizationService.AuthorizeAsync(user, Permissions.ManageLetsEncryptSettings))
@@ -77,7 +77,7 @@ namespace OrchardCore.LetsEncrypt.Drivers
                 else
                 {
                     // encrypt the client secret
-                    var protector = _dataProtectionProvider.CreateProtector(nameof(LetsEncryptConfigSettingsConfiguration));
+                    var protector = _dataProtectionProvider.CreateProtector(nameof(LetsEncryptCertConfigSettingsConfiguration));
                     settings.PfxPassword = protector.Protect(settings.PfxPassword);
                 }
 

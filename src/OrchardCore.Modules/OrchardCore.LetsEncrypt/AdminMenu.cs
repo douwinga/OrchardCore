@@ -30,20 +30,20 @@ namespace OrchardCore.LetsEncrypt
 
                 if (_shellSettings.Name == ShellHelper.DefaultShellName)
                 {
-                    category.Add(T["Azure Authentication"], "1", client => client
+                    category.Add(T["Azure Authentication"], T["Azure Authentication"], client => client
                         .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt.Azure.Auth" })
                         .Permission(Permissions.ManageLetsEncryptAzureAuthSettings)
                         .LocalNav()
                     );
                 }
 
-                category.Add(T["Configuration"], "2", client => client
-                    .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt" })
+                category.Add(T["Cert Configuration"], T["Cert Configuration"], client => client
+                    .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt.Cert" })
                     .Permission(Permissions.ManageLetsEncryptSettings)
                     .LocalNav()
                 );
 
-                category.Add(T["Install Azure Cert"], "3", azureEntry => azureEntry
+                category.Add(T["Install Azure Cert"], T["Install Azure Cert"], azureEntry => azureEntry
                     .Action("InstallAzureCertificate", "Admin", new { area = "OrchardCore.LetsEncrypt", groupId = "OrchardCore.LetsEncrypt.AzureInstall" })
                     .Permission(Permissions.ManageLetsEncryptSettings)
                     .LocalNav()

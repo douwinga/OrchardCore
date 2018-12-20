@@ -8,27 +8,27 @@ using OrchardCore.Settings;
 
 namespace OrchardCore.LetsEncrypt.Configuration
 {
-    public class LetsEncryptConfigSettingsConfiguration : IConfigureOptions<LetsEncryptConfigSettings>
+    public class LetsEncryptCertConfigSettingsConfiguration : IConfigureOptions<LetsEncryptCertConfigSettings>
     {
         private readonly ISiteService _site;
         private readonly IDataProtectionProvider _dataProtectionProvider;
-        private readonly ILogger<LetsEncryptConfigSettingsConfiguration> _logger;
+        private readonly ILogger<LetsEncryptCertConfigSettingsConfiguration> _logger;
 
-        public LetsEncryptConfigSettingsConfiguration(
+        public LetsEncryptCertConfigSettingsConfiguration(
             ISiteService site,
             IDataProtectionProvider dataProtectionProvider,
-            ILogger<LetsEncryptConfigSettingsConfiguration> logger)
+            ILogger<LetsEncryptCertConfigSettingsConfiguration> logger)
         {
             _site = site;
             _dataProtectionProvider = dataProtectionProvider;
             _logger = logger;
         }
 
-        public void Configure(LetsEncryptConfigSettings options)
+        public void Configure(LetsEncryptCertConfigSettings options)
         {
             var settings = _site.GetSiteSettingsAsync()
                 .GetAwaiter().GetResult()
-                .As<LetsEncryptConfigSettings>();
+                .As<LetsEncryptCertConfigSettings>();
 
             options.Country = settings.Country;
             options.StateOrProvince = settings.StateOrProvince;
@@ -41,7 +41,7 @@ namespace OrchardCore.LetsEncrypt.Configuration
             {
                 try
                 {
-                    var protector = _dataProtectionProvider.CreateProtector(nameof(LetsEncryptConfigSettingsConfiguration));
+                    var protector = _dataProtectionProvider.CreateProtector(nameof(LetsEncryptCertConfigSettingsConfiguration));
                     options.PfxPassword = protector.Unprotect(settings.PfxPassword);
                 }
                 catch

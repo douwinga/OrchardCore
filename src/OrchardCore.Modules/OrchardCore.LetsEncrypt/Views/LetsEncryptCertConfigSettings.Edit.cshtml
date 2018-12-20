@@ -1,7 +1,7 @@
 @using OrchardCore.LetsEncrypt.Settings
-@model LetsEncryptConfigSettings;
+@model LetsEncryptCertConfigSettings;
 
-<p class="alert alert-warning">@T["The current tenant will be reloaded when the settings are saved."]</p>
+<h3>@T["Cert Configuration"]</h3>
 
 <fieldset class="form-group" asp-validation-class-for="Country">
     <label>@T["Country"] <span asp-validation-for="Country"></span></label>
