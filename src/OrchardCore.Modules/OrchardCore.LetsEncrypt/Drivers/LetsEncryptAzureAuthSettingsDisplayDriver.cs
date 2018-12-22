@@ -40,7 +40,7 @@ namespace OrchardCore.LetsEncrypt.Drivers
         public override async Task<IDisplayResult> EditAsync(LetsEncryptAzureAuthSettings settings, BuildEditorContext context)
         {
             var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null || !await _authorizationService.AuthorizeAsync(user, Permissions.ManageLetsEncryptAzureAuthSettings))
+            if (user == null || !await _authorizationService.AuthorizeAsync(user, Permissions.ManageLetsEncryptAzureAuthSettings) || _shellSettings.Name != ShellHelper.DefaultShellName)
             {
                 return null;
             }
@@ -62,7 +62,7 @@ namespace OrchardCore.LetsEncrypt.Drivers
         public override async Task<IDisplayResult> UpdateAsync(LetsEncryptAzureAuthSettings settings, BuildEditorContext context)
         {
             var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null || !await _authorizationService.AuthorizeAsync(user, Permissions.ManageLetsEncryptAzureAuthSettings))
+            if (user == null || !await _authorizationService.AuthorizeAsync(user, Permissions.ManageLetsEncryptAzureAuthSettings) || _shellSettings.Name != ShellHelper.DefaultShellName)
             {
                 return null;
             }
