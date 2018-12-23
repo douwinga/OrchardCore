@@ -3,34 +3,33 @@ using Microsoft.Azure.Management.AppService.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using OrchardCore.Environment.Shell;
-using OrchardCore.LetsEncrypt.Settings;
 
 namespace OrchardCore.LetsEncrypt.Services
 {
     public class AzureWebAppService : IAzureWebAppService
     {
+        private IAppServiceManager _appServiceManager;
         private readonly IShellHost _orchardHost;
-        private readonly LetsEncryptAzureAuthSettings _azureAuthSettings;
-        private readonly IAppServiceManager _appServiceManager;
+        private readonly IAzureAuthSettingsService _azureAuthSettingsService;
 
-        public AzureWebAppService(IShellHost orchardHost)
+        public AzureWebAppService(IShellHost orchardHost, IAzureAuthSettingsService azureAuthSettingsService)
         {
             _orchardHost = orchardHost;
-            _azureAuthSettings = GetAzureAuthSettings().GetAwaiter().GetResult();
-            _appServiceManager = GetAppServiceManager();
+            _azureAuthSettingsService = azureAuthSettingsService;
         }
 
-        public IWebAppBase GetWebApp()
+        public async Task<IWebAppBase> GetWebAppAsync()
         {
-            var site = _appServiceManager.WebApps.GetByResourceGroup(_azureAuthSettings.ResourceGroupName, _azureAuthSettings.WebAppName);
+            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettings();
+            var appServiceManager = await GetAppServiceManagerAsync();
+
+            var site = appServiceManager.WebApps.GetByResourceGroup(azureAuthSettings.ResourceGroupName, azureAuthSettings.WebAppName);
             var siteOrSlot = (IWebAppBase)site;
 
-            if (!string.IsNullOrEmpty(_azureAuthSettings.SiteSlotName))
+            if (!string.IsNullOrEmpty(azureAuthSettings.SiteSlotName))
             {
-                var slot = site.DeploymentSlots.GetByName(_azureAuthSettings.SiteSlotName);
+                var slot = site.DeploymentSlots.GetByName(azureAuthSettings.SiteSlotName);
                 siteOrSlot = slot;
             }
 
@@ -39,8 +38,11 @@ namespace OrchardCore.LetsEncrypt.Services
 
         public async Task<IPagedCollection<IAppServiceCertificate>> GetAppServiceCertificatesAsync()
         {
-            return await _appServiceManager.AppServiceCertificates
-                .ListByResourceGroupAsync(_azureAuthSettings.ServicePlanResourceGroupName ?? _azureAuthSettings.ResourceGroupName);
+            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettings();
+            var appServiceManager = await GetAppServiceManagerAsync();
+
+            return await appServiceManager.AppServiceCertificates
+                .ListByResourceGroupAsync(azureAuthSettings.ServicePlanResourceGroupName ?? azureAuthSettings.ResourceGroupName);
         }
 
         public Task InstallCertificateAsync()
@@ -50,31 +52,31 @@ namespace OrchardCore.LetsEncrypt.Services
             return Task.CompletedTask;
         }
 
-        private async Task<LetsEncryptAzureAuthSettings> GetAzureAuthSettings()
+        private async Task<IAppServiceManager> GetAppServiceManagerAsync()
         {
-            // Get the azure auth settings from the default tenant
-            var shellSettings = _orchardHost.GetSettings(ShellHelper.DefaultShellName);
-
-            using (var scope = await _orchardHost.GetScopeAsync(shellSettings))
+            if (_appServiceManager != null)
             {
-                return scope.ServiceProvider.GetRequiredService<IOptions<LetsEncryptAzureAuthSettings>>().Value;
+                return _appServiceManager;
             }
+
+            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettings();
+
+            _appServiceManager = AppServiceManager.Authenticate(await GetAzureCredentialsAsync(), azureAuthSettings.SubscriptionId);
+
+            return _appServiceManager;
         }
 
-        private IAppServiceManager GetAppServiceManager()
+        private async Task<AzureCredentials> GetAzureCredentialsAsync()
         {
-            return AppServiceManager.Authenticate(GetAzureCredentials(), _azureAuthSettings.SubscriptionId);
-        }
+            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettings();
 
-        private AzureCredentials GetAzureCredentials()
-        {
             var servicePrincipalLoginInformation = new ServicePrincipalLoginInformation
             {
-                ClientId = _azureAuthSettings.ClientId,
-                ClientSecret = _azureAuthSettings.ClientSecret
+                ClientId = azureAuthSettings.ClientId,
+                ClientSecret = azureAuthSettings.ClientSecret
             };
 
-            return new AzureCredentials(servicePrincipalLoginInformation, _azureAuthSettings.Tenant, AzureEnvironment.AzureGlobalCloud);
+            return new AzureCredentials(servicePrincipalLoginInformation, azureAuthSettings.Tenant, AzureEnvironment.AzureGlobalCloud);
         }
     }
 }

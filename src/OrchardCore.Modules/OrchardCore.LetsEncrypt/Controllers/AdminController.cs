@@ -62,7 +62,7 @@ namespace OrchardCore.LetsEncrypt.Controllers
                 model = new InstallAzureCertificateViewModel();
             }
 
-            var webApp = _azureWebAppService.GetWebApp();
+            var webApp = await _azureWebAppService.GetWebAppAsync();
 
             model.AvailableHostNames = webApp.HostNames;
             model.HostNameSslStates = webApp.HostNameSslStates;

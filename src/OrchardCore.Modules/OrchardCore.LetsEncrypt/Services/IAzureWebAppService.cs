@@ -6,7 +6,7 @@ namespace OrchardCore.LetsEncrypt.Services
 {
     public interface IAzureWebAppService
     {
-        IWebAppBase GetWebApp();
+        Task<IWebAppBase> GetWebAppAsync();
         Task<IPagedCollection<IAppServiceCertificate>> GetAppServiceCertificatesAsync();
         Task InstallCertificateAsync();
     }

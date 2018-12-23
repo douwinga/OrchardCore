@@ -47,6 +47,7 @@ namespace OrchardCore.LetsEncrypt.Services
             Directory.CreateDirectory(Path.GetDirectoryName(keyAuthorizationFilename));
             File.WriteAllText(keyAuthorizationFilename, keyAuthorizationString);
 
+            // Split to a separate function
             var challengeResponse = await httpChallenge.Validate();
 
             while (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Pending || challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Processing)
@@ -114,6 +115,7 @@ namespace OrchardCore.LetsEncrypt.Services
 
             var letsEncryptUri = useStaging ? WellKnownServers.LetsEncryptStagingV2 : WellKnownServers.LetsEncryptV2;
 
+            // TODO: Move to a provider or something
             var pemKeyFilename = PathExtensions.Combine(
                 _shellOptions.Value.ShellsApplicationDataPath,
                 _shellOptions.Value.ShellsContainerName,
