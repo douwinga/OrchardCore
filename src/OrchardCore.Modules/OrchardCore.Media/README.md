@@ -34,13 +34,12 @@ Renders an `<img src />` HTML tag.
 
 #### Output
 
-`<img src="/media/animals/kittens.jpg" />`
+`<img src="~/media/animals/kittens.jpg" />`
 
 #### Options
 
-##### `alt` (Default)
-
-The alternate text attribute value
+You can add as many html attributes as you want with the img_tag.
+`{{ 'animals/kittens.jpg' | asset_url | img_tag: alt: 'kittens', class: 'kittens black', data_order: some_var }}`
 
 ## Image resizing filters
 
@@ -54,7 +53,7 @@ Convert the input URL to create a resized image with the specified size argument
 
 #### Output
 
-`<img src="/media/animals/kittens.jpg?width=100&height=240" />`
+`<img src="~/media/animals/kittens.jpg?width=100&height=240" />`
 
 #### Arguments
 
@@ -102,7 +101,7 @@ Stretches the resized image to fit the bounds of its container.
 
 ### Output
 
-`<img src="/media/animals/kittens.jpg?width=100&height=240&rmode=crop" />`
+`<img src="~/media/animals/kittens.jpg?width=100&height=240&rmode=crop" />`
 
 ## Razor Helpers
 
@@ -134,6 +133,23 @@ Keep these things in mind when working with the deployment step editor:
 - Selecting a file will ensure that only that file is added to the package when this deployment plan executes, regardless of what you see here now.
 - Selecting a directory will ensure that all the files in that directory at the time this deployment plan executes, are added to the package during execution, regardless of what you see here now.
 - Selecting all files in a directory will ensure that only those files are added to the package when this deployment plan executes, even if at that time, that directory has more files than what you see here now.
+
+## Configuration
+
+The following configuration values are used by default and can be customized:
+
+```json
+    "OrchardCore.Media": {
+      // The accepted sizes for custom width and height
+      "SupportedSizes": [ 16, 32, 50, 100, 160, 240, 480, 600, 1024, 2048 ],
+
+      // The number of days to store images in the browser cache
+      "MaxBrowserCacheDays": 30,
+
+      // The number of days to store images in the image cache
+      "MaxCacheDays": 365
+    }
+```
 
 ## CREDITS
 

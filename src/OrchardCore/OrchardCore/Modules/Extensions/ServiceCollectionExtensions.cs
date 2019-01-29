@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,12 +8,15 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using OrchardCore;
 using OrchardCore.Environment.Extensions;
 using OrchardCore.Environment.Shell;
+using OrchardCore.Environment.Shell.Configuration;
 using OrchardCore.Environment.Shell.Descriptor.Models;
 using OrchardCore.Modules;
 
@@ -39,7 +43,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 AddDefaultServices(services);
                 AddShellServices(services);
                 AddExtensionServices(builder);
-
                 AddStaticFiles(builder);
 
                 AddAntiForgery(builder);
@@ -129,6 +132,17 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 options.RequestPath = "";
                 options.FileProvider = fileProvider;
+
+                var shellConfiguration = serviceProvider.GetRequiredService<IShellConfiguration>();
+
+                var cacheControl = shellConfiguration.GetValue("StaticFileOptions:CacheControl", "public, max-age=2592000, s-max-age=31557600");
+
+                // Cache static files for a year as they are coming from embedded resources and should not vary
+                options.OnPrepareResponse = ctx =>
+                {
+                    ctx.Context.Response.Headers[HeaderNames.CacheControl] = cacheControl;
+                };
+
                 app.UseStaticFiles(options);
             });
         }
@@ -190,9 +204,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 var options = serviceProvider.GetRequiredService<IOptions<ShellOptions>>();
 
                 var directory = Directory.CreateDirectory(Path.Combine(
-                options.Value.ShellsApplicationDataPath,
-                options.Value.ShellsContainerName,
-                settings.Name, "DataProtection-Keys"));
+                    options.Value.ShellsApplicationDataPath,
+                    options.Value.ShellsContainerName,
+                    settings.Name, "DataProtection-Keys"));
 
                 // Re-register the data protection services to be tenant-aware so that modules that internally
                 // rely on IDataProtector/IDataProtectionProvider automatically get an isolated instance that

@@ -3,6 +3,8 @@ using GraphQL;
 using GraphQL.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using OrchardCore.ContentManagement.GraphQL.Options;
 using OrchardCore.ContentManagement.Metadata.Models;
 
 namespace OrchardCore.ContentManagement.GraphQL.Queries.Types
@@ -10,10 +12,13 @@ namespace OrchardCore.ContentManagement.GraphQL.Queries.Types
     public class TypedContentTypeBuilder : IContentTypeBuilder
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly GraphQLContentOptions _contentOptions;
 
-        public TypedContentTypeBuilder(IHttpContextAccessor httpContextAccessor)
+        public TypedContentTypeBuilder(IHttpContextAccessor httpContextAccessor,
+            IOptions<GraphQLContentOptions> contentOptionsAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
+            _contentOptions = contentOptionsAccessor.Value;
         }
 
         public void Build(FieldType contentQuery, ContentTypeDefinition contentTypeDefinition, ContentItemType contentItemType)
@@ -23,30 +28,38 @@ namespace OrchardCore.ContentManagement.GraphQL.Queries.Types
 
             foreach (var part in contentTypeDefinition.Parts)
             {
-                var partName = part.PartDefinition.Name;
+                var partName = part.Name;
 
                 // Check if another builder has already added a field for this part.
-                if (contentItemType.HasField(partName))
-                {
-                    continue;
-                }
+                if (contentItemType.HasField(partName)) continue;
 
-                var activator = typeActivator.GetTypeActivator(partName);
+                var activator = typeActivator.GetTypeActivator(part.PartDefinition.Name);
 
                 var queryGraphType = typeof(ObjectGraphType<>).MakeGenericType(activator.Type);
 
                 if (serviceProvider.GetService(queryGraphType) is IObjectGraphType queryGraphTypeResolved)
                 {
-                    contentItemType.Field(
-                        queryGraphTypeResolved.GetType(),
-                        partName,
-                        resolve: context =>
+                    if (_contentOptions.ShouldCollapse(part))
+                    {
+                        foreach (var field in queryGraphTypeResolved.Fields)
                         {
-                            var nameToResolve = context.ReturnType.Name;
-                            var typeToResolve = context.ReturnType.GetType().BaseType.GetGenericArguments().First();
+                            contentItemType.AddField(field);
+                        }
+                    }
+                    else
+                    {
+                        contentItemType.Field(
+                            queryGraphTypeResolved.GetType(),
+                            partName.ToFieldName(),
+                            description: queryGraphTypeResolved.Description,
+                            resolve: context =>
+                            {
+                                var nameToResolve = partName;
+                                var typeToResolve = context.ReturnType.GetType().BaseType.GetGenericArguments().First();
 
-                            return context.Source.Get(typeToResolve, nameToResolve);
-                        });
+                                return context.Source.Get(typeToResolve, nameToResolve);
+                            });
+                    }
                 }
 
                 var inputGraphType = typeof(InputObjectGraphType<>).MakeGenericType(activator.Type);
@@ -59,7 +72,7 @@ namespace OrchardCore.ContentManagement.GraphQL.Queries.Types
                         return;
                     }
 
-                    var whereInput = (ContentItemWhereInput) whereArgument.ResolvedType;
+                    var whereInput = (ContentItemWhereInput)whereArgument.ResolvedType;
 
                     whereInput.AddField(new FieldType
                     {
