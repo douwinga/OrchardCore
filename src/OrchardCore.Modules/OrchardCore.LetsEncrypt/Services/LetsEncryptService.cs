@@ -8,6 +8,7 @@ using Certes.Acme;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OrchardCore.Environment.Shell;
+using OrchardCore.LetsEncrypt.Models;
 using OrchardCore.LetsEncrypt.Settings;
 
 namespace OrchardCore.LetsEncrypt.Services
@@ -32,7 +33,7 @@ namespace OrchardCore.LetsEncrypt.Services
             _logger = logger;
         }
 
-        public async Task RequestHttpChallengeCertificate(string registrationEmail, string[] hostnames, bool useStaging)
+        public async Task<CertificateInstallModel> RequestHttpChallengeCertificate(string registrationEmail, string[] hostnames, bool useStaging)
         {
             var acmeContext = await GetOrCreateAcmeContext(registrationEmail, useStaging);
 
@@ -52,7 +53,6 @@ namespace OrchardCore.LetsEncrypt.Services
 
             while (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Pending || challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Processing)
             {
-                _logger.LogInformation($"HTTP challenge response status {challengeResponse.Status} more info at {challengeResponse.Url} retrying in 5 sec");
                 await Task.Delay(5000);
                 challengeResponse = await httpChallenge.Resource();
             }
@@ -64,8 +64,7 @@ namespace OrchardCore.LetsEncrypt.Services
 
             var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
 
-            // TODO: Split out into a separate function
-            var cert = await order.Generate(new CsrInfo
+            var certInfo = new CsrInfo
             {
                 CountryName = _certConfigSettings.Country,
                 State = _certConfigSettings.StateOrProvince,
@@ -73,14 +72,24 @@ namespace OrchardCore.LetsEncrypt.Services
                 Organization = _certConfigSettings.Organization,
                 OrganizationUnit = _certConfigSettings.OrganizationUnit,
                 CommonName = hostnames[0]
-            }, privateKey);
+            };
 
+            // TODO: Split out into a separate function
+            var cert = await order.Generate(certInfo, privateKey);
+            
             var certPem = cert.ToPem();
 
             var pfxBuilder = cert.ToPfx(privateKey);
             var pfx = pfxBuilder.Build(hostnames[0], _certConfigSettings.PfxPassword);
 
-            File.WriteAllBytes(GetCertFilename(hostnames[0]), pfx);
+            // File.WriteAllBytes(GetCertFilename(hostnames[0]), pfx);
+
+            return new CertificateInstallModel
+            {
+                CertInfo = certInfo,
+                PfxCertificate = pfx,
+                PfxPassword = _certConfigSettings.PfxPassword
+            };
         }
 
         // TODO: Move to a provider or something

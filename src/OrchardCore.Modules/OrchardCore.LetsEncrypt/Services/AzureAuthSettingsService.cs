@@ -16,7 +16,7 @@ namespace OrchardCore.LetsEncrypt.Services
             _orchardHost = orchardHost;
         }
 
-        public async Task<LetsEncryptAzureAuthSettings> GetAzureAuthSettings()
+        public async Task<LetsEncryptAzureAuthSettings> GetAzureAuthSettingsAsync()
         {
             if (_azureAuthSettings != null)
             {

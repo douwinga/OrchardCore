@@ -12,12 +12,14 @@ namespace OrchardCore.LetsEncrypt.Controllers
     public class AdminController : Controller
     {
         private readonly IAzureWebAppService _azureWebAppService;
+        private readonly IAzureCertificateService _azureCertificateService;
         private readonly ILetsEncryptService _letsEncryptService;
         private readonly LetsEncryptAzureAuthSettings _azureAuthSettings;
         private readonly INotifier _notifier;
 
         public AdminController(
             IAzureWebAppService azureWebAppService,
+            IAzureCertificateService azureCertificateService,
             ILetsEncryptService letsEncryptService,
             IOptions<LetsEncryptAzureAuthSettings> azureAuthSettings,
             INotifier notifier,
@@ -25,6 +27,7 @@ namespace OrchardCore.LetsEncrypt.Controllers
             )
         {
             _azureWebAppService = azureWebAppService;
+            _azureCertificateService = azureCertificateService;
             _letsEncryptService = letsEncryptService;
             _azureAuthSettings = azureAuthSettings.Value;
             _notifier = notifier;
@@ -48,7 +51,8 @@ namespace OrchardCore.LetsEncrypt.Controllers
                 return View("AzureInstallCertificate", model);
             }
 
-            await _letsEncryptService.RequestHttpChallengeCertificate(model.RegistrationEmail, model.Hostnames, model.UseStaging);
+            var certInstallModel = await _letsEncryptService.RequestHttpChallengeCertificate(model.RegistrationEmail, model.Hostnames, model.UseStaging);
+            await _azureCertificateService.InstallAsync(certInstallModel);
 
             _notifier.Success(T["Successfully installed Let's Encrypt certificate!"]);
 

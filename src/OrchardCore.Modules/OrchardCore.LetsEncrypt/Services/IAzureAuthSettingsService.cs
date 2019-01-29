@@ -5,6 +5,6 @@ namespace OrchardCore.LetsEncrypt.Services
 {
     public interface IAzureAuthSettingsService
     {
-        Task<LetsEncryptAzureAuthSettings> GetAzureAuthSettings();
+        Task<LetsEncryptAzureAuthSettings> GetAzureAuthSettingsAsync();
     }
 }

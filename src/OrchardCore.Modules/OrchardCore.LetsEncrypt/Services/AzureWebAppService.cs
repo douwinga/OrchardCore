@@ -21,7 +21,7 @@ namespace OrchardCore.LetsEncrypt.Services
 
         public async Task<IWebAppBase> GetWebAppAsync()
         {
-            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettings();
+            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettingsAsync();
             var appServiceManager = await GetAppServiceManagerAsync();
 
             var site = appServiceManager.WebApps.GetByResourceGroup(azureAuthSettings.ResourceGroupName, azureAuthSettings.WebAppName);
@@ -38,18 +38,11 @@ namespace OrchardCore.LetsEncrypt.Services
 
         public async Task<IPagedCollection<IAppServiceCertificate>> GetAppServiceCertificatesAsync()
         {
-            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettings();
+            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettingsAsync();
             var appServiceManager = await GetAppServiceManagerAsync();
 
             return await appServiceManager.AppServiceCertificates
                 .ListByResourceGroupAsync(azureAuthSettings.ServicePlanResourceGroupName ?? azureAuthSettings.ResourceGroupName);
-        }
-
-        public Task InstallCertificateAsync()
-        {
-            // TODO: Add function to get site or slot to app service manager
-
-            return Task.CompletedTask;
         }
 
         private async Task<IAppServiceManager> GetAppServiceManagerAsync()
@@ -59,7 +52,7 @@ namespace OrchardCore.LetsEncrypt.Services
                 return _appServiceManager;
             }
 
-            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettings();
+            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettingsAsync();
 
             _appServiceManager = AppServiceManager.Authenticate(await GetAzureCredentialsAsync(), azureAuthSettings.SubscriptionId);
 
@@ -68,7 +61,7 @@ namespace OrchardCore.LetsEncrypt.Services
 
         private async Task<AzureCredentials> GetAzureCredentialsAsync()
         {
-            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettings();
+            var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettingsAsync();
 
             var servicePrincipalLoginInformation = new ServicePrincipalLoginInformation
             {

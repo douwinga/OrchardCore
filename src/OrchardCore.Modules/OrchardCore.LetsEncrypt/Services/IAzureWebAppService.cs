@@ -8,6 +8,5 @@ namespace OrchardCore.LetsEncrypt.Services
     {
         Task<IWebAppBase> GetWebAppAsync();
         Task<IPagedCollection<IAppServiceCertificate>> GetAppServiceCertificatesAsync();
-        Task InstallCertificateAsync();
     }
 }
