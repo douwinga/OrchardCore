@@ -82,8 +82,6 @@ namespace OrchardCore.LetsEncrypt.Services
             var pfxBuilder = cert.ToPfx(privateKey);
             var pfx = pfxBuilder.Build(hostnames[0], _certConfigSettings.PfxPassword);
 
-            // File.WriteAllBytes(GetCertFilename(hostnames[0]), pfx);
-
             return new CertificateInstallModel
             {
                 CertInfo = certInfo,
@@ -93,7 +91,6 @@ namespace OrchardCore.LetsEncrypt.Services
             };
         }
 
-        // TODO: Move to a provider or something
         public string GetChallengeKeyFilename(string token)
         {
             return PathExtensions.Combine(
@@ -106,26 +103,12 @@ namespace OrchardCore.LetsEncrypt.Services
             );
         }
 
-        // TODO: Move to a provider or something
-        public string GetCertFilename(string hostname)
-        {
-            return PathExtensions.Combine(
-                _shellOptions.Value.ShellsApplicationDataPath,
-                _shellOptions.Value.ShellsContainerName,
-                _shellSettings.Name,
-                "Lets-Encrypt",
-                "Certificates",
-                $"{hostname} {DateTime.Now}"
-            );
-        }
-
         private async Task<AcmeContext> GetOrCreateAcmeContext(string registrationEmail, bool useStaging)
         {
             AcmeContext acmeContext;
 
             var letsEncryptUri = useStaging ? WellKnownServers.LetsEncryptStagingV2 : WellKnownServers.LetsEncryptV2;
 
-            // TODO: Move to a provider or something
             var pemKeyFilename = PathExtensions.Combine(
                 _shellOptions.Value.ShellsApplicationDataPath,
                 _shellOptions.Value.ShellsContainerName,
