@@ -29,7 +29,29 @@ namespace OrchardCore.LetsEncrypt.Services
                 ServerFarmId = webApp.Inner.ServerFarmId
             };
 
-            await webApp.Manager.AppServiceCertificates.Inner.CreateOrUpdateWithHttpMessagesAsync(azureAuthSettings.ServicePlanResourceGroupName, certInstallModel.CertInfo.CommonName, cert);
+            var certOperationResponse = await webApp.Manager.AppServiceCertificates.Inner.CreateOrUpdateWithHttpMessagesAsync(azureAuthSettings.ServicePlanResourceGroupName, certInstallModel.CertInfo.CommonName, cert);
+
+            // TODO handle error response
+            //certOperationResponse.Response.IsSuccessStatusCode
+
+            var thumbprint = certOperationResponse.Body.Thumbprint;
+
+            foreach (var hostname in certInstallModel.Hostnames)
+            {
+                var hostnameBinding = new HostNameBindingInner(
+                    azureResourceType: AzureResourceType.Website,
+                      hostNameType: HostNameType.Verified,
+                      customHostNameDnsRecordType: CustomHostNameDnsRecordType.CName, // TODO: Handle A? Depends on the type of hostname. Need to research this
+                      sslState: azureAuthSettings.UseIPBasedSSL ? SslState.IpBasedEnabled : SslState.SniEnabled,
+                      thumbprint: thumbprint
+                    );
+
+                var hostnameBindingResponse = await webApp.Manager.WebApps.Inner.CreateOrUpdateHostNameBindingWithHttpMessagesAsync(azureAuthSettings.ResourceGroupName, azureAuthSettings.WebAppName, hostname, hostnameBinding);
+
+                // TODO: handle error response
+            }
+
+
         }
     }
 }

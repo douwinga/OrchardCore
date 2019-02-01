@@ -85,7 +85,10 @@ namespace OrchardCore.LetsEncrypt.Drivers
                 }
 
                 // Reload the tenant to apply the settings
-                await _shellHost.ReloadShellContextAsync(_shellSettings);
+                if (context.Updater.ModelState.IsValid)
+                {
+                    await _shellHost.ReloadShellContextAsync(_shellSettings);
+                }
             }
 
             return await EditAsync(settings, context);

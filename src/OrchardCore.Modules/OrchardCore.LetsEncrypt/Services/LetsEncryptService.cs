@@ -76,7 +76,7 @@ namespace OrchardCore.LetsEncrypt.Services
 
             // TODO: Split out into a separate function
             var cert = await order.Generate(certInfo, privateKey);
-            
+
             var certPem = cert.ToPem();
 
             var pfxBuilder = cert.ToPfx(privateKey);
@@ -88,7 +88,8 @@ namespace OrchardCore.LetsEncrypt.Services
             {
                 CertInfo = certInfo,
                 PfxCertificate = pfx,
-                PfxPassword = _certConfigSettings.PfxPassword
+                PfxPassword = _certConfigSettings.PfxPassword,
+                Hostnames = hostnames
             };
         }
 
