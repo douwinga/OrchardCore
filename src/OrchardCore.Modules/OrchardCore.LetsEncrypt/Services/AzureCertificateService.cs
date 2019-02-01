@@ -29,7 +29,9 @@ namespace OrchardCore.LetsEncrypt.Services
                 ServerFarmId = webApp.Inner.ServerFarmId
             };
 
-            var certOperationResponse = await webApp.Manager.AppServiceCertificates.Inner.CreateOrUpdateWithHttpMessagesAsync(azureAuthSettings.ServicePlanResourceGroupName, certInstallModel.CertInfo.CommonName, cert);
+            var resourceGroupName = azureAuthSettings.ServicePlanResourceGroupName ?? azureAuthSettings.ResourceGroupName;
+
+            var certOperationResponse = await webApp.Manager.AppServiceCertificates.Inner.CreateOrUpdateWithHttpMessagesAsync(resourceGroupName, certInstallModel.CertInfo.CommonName, cert);
 
             // TODO handle error response
             //certOperationResponse.Response.IsSuccessStatusCode
@@ -46,7 +48,7 @@ namespace OrchardCore.LetsEncrypt.Services
                       thumbprint: thumbprint
                     );
 
-                var hostnameBindingResponse = await webApp.Manager.WebApps.Inner.CreateOrUpdateHostNameBindingWithHttpMessagesAsync(azureAuthSettings.ResourceGroupName, azureAuthSettings.WebAppName, hostname, hostnameBinding);
+                var hostnameBindingResponse = await webApp.Manager.WebApps.Inner.CreateOrUpdateHostNameBindingWithHttpMessagesAsync(resourceGroupName, azureAuthSettings.WebAppName, hostname, hostnameBinding);
 
                 // TODO: handle error response
             }
