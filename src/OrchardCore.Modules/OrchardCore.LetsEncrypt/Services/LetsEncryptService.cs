@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Certes;
@@ -35,27 +34,30 @@ namespace OrchardCore.LetsEncrypt.Services
 
             var order = await acmeContext.NewOrder(hostnames);
 
-            var authorizationContext = (await order.Authorizations()).First();
-            var httpChallenge = await authorizationContext.Http();
-            var keyAuthorizationString = httpChallenge.KeyAuthz;
-
-            var keyAuthorizationFilename = GetChallengeKeyFilename(httpChallenge.Token);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(keyAuthorizationFilename));
-            File.WriteAllText(keyAuthorizationFilename, keyAuthorizationString);
-
-            // Split to a separate function
-            var challengeResponse = await httpChallenge.Validate();
-
-            while (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Pending || challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Processing)
+            // TODO: Handle authorizations in another method
+            foreach (var authorizationContext in await order.Authorizations())
             {
-                await Task.Delay(5000);
-                challengeResponse = await httpChallenge.Resource();
-            }
+                var httpChallenge = await authorizationContext.Http();
+                var keyAuthorizationString = httpChallenge.KeyAuthz;
 
-            if (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Invalid)
-            {
-                throw new Exception($"Let's Encrypt challenge failed. {challengeResponse.Error?.Detail}");
+                var keyAuthorizationFilename = GetChallengeKeyFilename(httpChallenge.Token);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(keyAuthorizationFilename));
+                File.WriteAllText(keyAuthorizationFilename, keyAuthorizationString);
+
+                // Split to a separate function
+                var challengeResponse = await httpChallenge.Validate();
+
+                while (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Pending || challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Processing)
+                {
+                    await Task.Delay(5000);
+                    challengeResponse = await httpChallenge.Resource();
+                }
+
+                if (challengeResponse.Status == Certes.Acme.Resource.ChallengeStatus.Invalid)
+                {
+                    throw new Exception($"Let's Encrypt challenge failed. {challengeResponse.Error?.Detail}");
+                }
             }
 
             var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
@@ -72,9 +74,7 @@ namespace OrchardCore.LetsEncrypt.Services
 
             var pfxBuilder = cert.ToPfx(privateKey);
 
-            // TODO: Should we use a password here? Generate or ask the user?
-            // Others do not https://github.com/webprofusion/certify/blob/a6710c59c011d22908c6c854eb183079ae36532b/src/Certify.Providers/ACME/Certes/CertesACMEProvider.cs
-            var pfx = pfxBuilder.Build(hostnames[0], "");
+            var pfx = pfxBuilder.Build(hostnames[0], string.Empty);
 
             return new CertificateInstallModel
             {

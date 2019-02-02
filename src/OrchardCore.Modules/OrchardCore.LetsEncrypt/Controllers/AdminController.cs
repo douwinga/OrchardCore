@@ -48,17 +48,19 @@ namespace OrchardCore.LetsEncrypt.Controllers
             if (!ModelState.IsValid)
             {
                 await BuildInstallAzureCertificateViewModel(model);
-                return View("AzureInstallCertificate", model);
+                return View(model);
             }
 
             var certInstallModel = await _letsEncryptService.RequestHttpChallengeCertificate(model.RegistrationEmail, model.Hostnames, model.UseStaging);
+
             await _azureCertificateService.InstallAsync(certInstallModel);
 
             _notifier.Success(T["Successfully installed Let's Encrypt certificate!"]);
 
-            return RedirectToAction("AzureInstallCertificate");
+            return RedirectToAction("InstallAzureCertificate");
         }
 
+        // TODO: Need to change this as we don't need this much info on tenants
         private async Task<InstallAzureCertificateViewModel> BuildInstallAzureCertificateViewModel(InstallAzureCertificateViewModel model = null)
         {
             if (model == null)

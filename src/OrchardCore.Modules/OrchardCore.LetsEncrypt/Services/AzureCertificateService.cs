@@ -15,7 +15,6 @@ namespace OrchardCore.LetsEncrypt.Services
             _azureAuthSettingsService = azureAuthSettingsService;
         }
 
-
         public async Task InstallAsync(CertificateInstallModel certInstallModel)
         {
             var azureAuthSettings = await _azureAuthSettingsService.GetAzureAuthSettingsAsync();
@@ -24,7 +23,7 @@ namespace OrchardCore.LetsEncrypt.Services
             var cert = new CertificateInner()
             {
                 PfxBlob = certInstallModel.PfxCertificate,
-                Password = "",
+                Password = string.Empty,
                 Location = webApp.Inner.Location,
                 ServerFarmId = webApp.Inner.ServerFarmId
             };
