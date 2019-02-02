@@ -6,7 +6,6 @@ namespace OrchardCore.LetsEncrypt.Models
     {
         public CsrInfo CertInfo { get; set; }
         public byte[] PfxCertificate { get; set; }
-        public string PfxPassword { get; set; }
         public string[] Hostnames { get; set; }
     }
 }

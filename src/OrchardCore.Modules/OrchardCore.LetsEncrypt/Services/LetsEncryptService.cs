@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OrchardCore.Environment.Shell;
 using OrchardCore.LetsEncrypt.Models;
-using OrchardCore.LetsEncrypt.Settings;
 
 namespace OrchardCore.LetsEncrypt.Services
 {
@@ -17,19 +16,16 @@ namespace OrchardCore.LetsEncrypt.Services
     {
         private readonly IOptions<ShellOptions> _shellOptions;
         private readonly ShellSettings _shellSettings;
-        private readonly LetsEncryptCertConfigSettings _certConfigSettings;
         private readonly ILogger _logger;
 
         public LetsEncryptService(
             IOptions<ShellOptions> shellOptions,
             ShellSettings shellSettings,
-            IOptions<LetsEncryptCertConfigSettings> certConfigSettings,
             ILogger<LetsEncryptService> logger
             )
         {
             _shellOptions = shellOptions;
             _shellSettings = shellSettings;
-            _certConfigSettings = certConfigSettings.Value;
             _logger = logger;
         }
 
@@ -66,11 +62,6 @@ namespace OrchardCore.LetsEncrypt.Services
 
             var certInfo = new CsrInfo
             {
-                CountryName = _certConfigSettings.Country,
-                State = _certConfigSettings.StateOrProvince,
-                Locality = _certConfigSettings.Locality,
-                Organization = _certConfigSettings.Organization,
-                OrganizationUnit = _certConfigSettings.OrganizationUnit,
                 CommonName = hostnames[0]
             };
 
@@ -80,13 +71,15 @@ namespace OrchardCore.LetsEncrypt.Services
             var certPem = cert.ToPem();
 
             var pfxBuilder = cert.ToPfx(privateKey);
-            var pfx = pfxBuilder.Build(hostnames[0], _certConfigSettings.PfxPassword);
+
+            // TODO: Should we use a password here? Generate or ask the user?
+            // Others do not https://github.com/webprofusion/certify/blob/a6710c59c011d22908c6c854eb183079ae36532b/src/Certify.Providers/ACME/Certes/CertesACMEProvider.cs
+            var pfx = pfxBuilder.Build(hostnames[0], "");
 
             return new CertificateInstallModel
             {
                 CertInfo = certInfo,
                 PfxCertificate = pfx,
-                PfxPassword = _certConfigSettings.PfxPassword,
                 Hostnames = hostnames
             };
         }

@@ -24,7 +24,7 @@ namespace OrchardCore.LetsEncrypt.Services
             var cert = new CertificateInner()
             {
                 PfxBlob = certInstallModel.PfxCertificate,
-                Password = certInstallModel.PfxPassword,
+                Password = "",
                 Location = webApp.Inner.Location,
                 ServerFarmId = webApp.Inner.ServerFarmId
             };
