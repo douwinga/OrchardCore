@@ -37,12 +37,6 @@ namespace OrchardCore.LetsEncrypt
                     );
                 }
 
-                category.Add(T["Cert Configuration"], T["Cert Configuration"], client => client
-                    .Action("Index", "Admin", new { area = "OrchardCore.Settings", groupId = "OrchardCore.LetsEncrypt.Cert" })
-                    .Permission(Permissions.ManageLetsEncryptSettings)
-                    .LocalNav()
-                );
-
                 category.Add(T["Install Azure Cert"], T["Install Azure Cert"], azureEntry => azureEntry
                     .Action("InstallAzureCertificate", "Admin", new { area = "OrchardCore.LetsEncrypt", groupId = "OrchardCore.LetsEncrypt.AzureInstall" })
                     .Permission(Permissions.ManageLetsEncryptSettings)
