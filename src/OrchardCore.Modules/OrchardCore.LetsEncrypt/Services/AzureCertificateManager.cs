@@ -4,12 +4,12 @@ using OrchardCore.LetsEncrypt.Models;
 
 namespace OrchardCore.LetsEncrypt.Services
 {
-    public class AzureCertificateService : IAzureCertificateService
+    public class AzureCertificateManager : ICertificateManager
     {
         private readonly IAzureWebAppService _azureWebAppService;
         private readonly IAzureAuthSettingsService _azureAuthSettingsService;
 
-        public AzureCertificateService(IAzureWebAppService azureWebAppService, IAzureAuthSettingsService azureAuthSettingsService)
+        public AzureCertificateManager(IAzureWebAppService azureWebAppService, IAzureAuthSettingsService azureAuthSettingsService)
         {
             _azureWebAppService = azureWebAppService;
             _azureAuthSettingsService = azureAuthSettingsService;
@@ -53,6 +53,11 @@ namespace OrchardCore.LetsEncrypt.Services
             }
 
 
+        }
+
+        public Task RenewAsync()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

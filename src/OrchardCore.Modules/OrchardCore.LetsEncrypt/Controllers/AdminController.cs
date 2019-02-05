@@ -12,14 +12,14 @@ namespace OrchardCore.LetsEncrypt.Controllers
     public class AdminController : Controller
     {
         private readonly IAzureWebAppService _azureWebAppService;
-        private readonly IAzureCertificateService _azureCertificateService;
+        private readonly ICertificateManager _certificateManager;
         private readonly ILetsEncryptService _letsEncryptService;
         private readonly LetsEncryptAzureAuthSettings _azureAuthSettings;
         private readonly INotifier _notifier;
 
         public AdminController(
             IAzureWebAppService azureWebAppService,
-            IAzureCertificateService azureCertificateService,
+            ICertificateManager certificateManager,
             ILetsEncryptService letsEncryptService,
             IOptions<LetsEncryptAzureAuthSettings> azureAuthSettings,
             INotifier notifier,
@@ -27,7 +27,7 @@ namespace OrchardCore.LetsEncrypt.Controllers
             )
         {
             _azureWebAppService = azureWebAppService;
-            _azureCertificateService = azureCertificateService;
+            _certificateManager = certificateManager;
             _letsEncryptService = letsEncryptService;
             _azureAuthSettings = azureAuthSettings.Value;
             _notifier = notifier;
@@ -37,36 +37,33 @@ namespace OrchardCore.LetsEncrypt.Controllers
 
         public IHtmlLocalizer T { get; }
 
-        public async Task<IActionResult> InstallAzureCertificate()
+        public async Task<IActionResult> ManageCertificates()
         {
-            return View(await BuildInstallAzureCertificateViewModel());
+            return View(await BuildManageCertificatesViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> InstallAzureCertificate(InstallAzureCertificateViewModel model)
+        public async Task<IActionResult> InstallCertificate(InstallCertificateViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                await BuildInstallAzureCertificateViewModel(model);
+                await BuildManageCertificatesViewModel();
                 return View(model);
             }
 
-            var certInstallModel = await _letsEncryptService.RequestHttpChallengeCertificate(model.RegistrationEmail, model.Hostnames, model.UseStaging);
+            var viewModel = await _letsEncryptService.RequestHttpChallengeCertificate(model.RegistrationEmail, model.Hostnames, model.UseStaging);
 
-            await _azureCertificateService.InstallAsync(certInstallModel);
+            await _certificateManager.InstallAsync(viewModel);
 
             _notifier.Success(T["Successfully installed Let's Encrypt certificate!"]);
 
-            return RedirectToAction("InstallAzureCertificate");
+            return RedirectToAction("ManageCertificates");
         }
 
-        // TODO: Need to change this as we don't need this much info on tenants
-        private async Task<InstallAzureCertificateViewModel> BuildInstallAzureCertificateViewModel(InstallAzureCertificateViewModel model = null)
+        // TODO: Need to change this as we don't need this much info on tenants. Also this will need to be more generic in the end to support non azure
+        private async Task<ManageCertificatesViewModel> BuildManageCertificatesViewModel()
         {
-            if (model == null)
-            {
-                model = new InstallAzureCertificateViewModel();
-            }
+            var model = new ManageCertificatesViewModel();
 
             var webApp = await _azureWebAppService.GetWebAppAsync();
 

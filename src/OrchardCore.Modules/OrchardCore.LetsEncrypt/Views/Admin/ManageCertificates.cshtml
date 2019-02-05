@@ -1,7 +1,7 @@
 @using Microsoft.Azure.Management.AppService.Fluent.Models
-@model OrchardCore.LetsEncrypt.ViewModels.InstallAzureCertificateViewModel
+@model OrchardCore.LetsEncrypt.ViewModels.ManageCertificatesViewModel
 
-<h1>@RenderTitleSegments(T["Let's Encrypt - Install Certificate"])</h1>
+<h1>@RenderTitleSegments(T["Let's Encrypt - Manage Certificates"])</h1>
 
 <h3 class="mt-3">@T["Hostname SSL Bindings"]</h3>
 <ul class="list-group">
@@ -42,7 +42,7 @@
     }
 </ul>
 
-<form asp-action="InstallAzureCertificate">
+<form asp-action="InstallCertificate">
     <h3 class="mt-3">@T["Request and Install Certificate"]</h3>
     <div class="row">
         <div class="form-group col-md-6" asp-validation-class-for="Hostnames">

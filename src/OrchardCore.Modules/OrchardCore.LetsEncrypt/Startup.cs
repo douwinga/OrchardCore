@@ -27,7 +27,7 @@ namespace OrchardCore.LetsEncrypt
             services.AddScoped<IAzureWebAppService, AzureWebAppService>();
             services.AddScoped<IAzureAuthSettingsService, AzureAuthSettingsService>();
             services.AddScoped<ILetsEncryptService, LetsEncryptService>();
-            services.AddScoped<IAzureCertificateService, AzureCertificateService>();
+            services.AddScoped<ICertificateManager, AzureCertificateManager>();
         }
 
         public override void Configure(IApplicationBuilder builder, IRouteBuilder routes, IServiceProvider serviceProvider)

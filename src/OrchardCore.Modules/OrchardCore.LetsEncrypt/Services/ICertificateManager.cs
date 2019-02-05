@@ -3,8 +3,9 @@ using OrchardCore.LetsEncrypt.Models;
 
 namespace OrchardCore.LetsEncrypt.Services
 {
-    public interface IAzureCertificateService
+    public interface ICertificateManager
     {
         Task InstallAsync(CertificateInstallModel certInstallModel);
+        Task RenewAsync();
     }
 }
